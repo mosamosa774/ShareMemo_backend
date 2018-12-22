@@ -24,11 +24,10 @@ app.get('/file', function(req, res) {
     fs.access(filePath, fs.constants.F_OK | fs.constants.W_OK, (err) => {
         if (err) {
             res.send({text: " "});
-            throw err;
         } else {
             fs.readFile(filePath, "utf-8", function (err, data) {
                 if (err) {
-                  next(err); // Pass errors to Express.
+                    res.send({text: " "});
                 }
                 else {
                     console.log(data)
@@ -43,8 +42,7 @@ app.post('/file', function(req, res) {
     console.log(req.body.text);
     fs.writeFile(filePath, req.body.text, function (err) {
         if (err) {
-            next(err);
-            throw err;
+            res.send("failed")
         }
         console.log('Saved!');
         res.send("done")
