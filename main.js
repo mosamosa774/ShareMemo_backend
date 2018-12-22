@@ -23,7 +23,7 @@ app.get('/file', function(req, res) {
     res.setHeader('content-Type', 'application/json; charset=utf-8' );
     fs.access(filePath, fs.constants.F_OK | fs.constants.W_OK, (err) => {
         if (err) {
-            next(err);
+            res.send({text: " "});
             throw err;
         } else {
             fs.readFile(filePath, "utf-8", function (err, data) {
