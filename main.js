@@ -3,9 +3,13 @@ const port = process.env.PORT || 8080;
 const app = express();
 var fs = require('fs');
 var path = require('path');
+const fetch = require('isomorphic-fetch');
+var Dropbox = require('dropbox').Dropbox;
 const bodyParser = require('body-parser');
-
-var filePath = path.join(__dirname, 'item.txt');
+var FileReader = require('filereader')
+const db = require('dropbox-stream');
+console.log(process.env.dropboxAT)
+var dbx = new Dropbox({ accessToken: process.env.dropboxAT });
 
 app.use(express.static(__dirname + "/dist/"));
 
@@ -21,32 +25,34 @@ app.get('/', function(req, res) {
 });
 app.get('/file', function(req, res) {
     res.setHeader('content-Type', 'application/json; charset=utf-8' );
-    fs.access(filePath, fs.constants.F_OK | fs.constants.W_OK, (err) => {
-        if (err) {
+    dbx.filesDownload({path: '/item.txt'})
+        .then(function(response) {
+            var buf = response.fileBinary;
+            str = buf.toString('utf-8');
+            console.log( str );
+            res.send({text: str});
+        })
+        .catch(function(error) {
             res.send({text: " "});
-        } else {
-            fs.readFile(filePath, "utf-8", function (err, data) {
-                if (err) {
-                    res.send({text: " "});
-                }
-                else {
-                    console.log(data)
-                    res.send({text: data});
-                }
-            });
-        }
-    });
+            console.error(error);
+        });
 });
 app.post('/file', function(req, res) {
-    console.log(req.body);
-    console.log(req.body.text);
-    fs.writeFile(filePath, req.body.text, function (err) {
-        if (err) {
-            res.send("failed")
-        }
-        console.log('Saved!');
-        res.send("done")
-    });
+    var filePath = path.join(__dirname, '/item.txt');
+    fs.writeFileSync(filePath,req.body.text);
+    const up = db.createDropboxUploadStream({
+        token: process.env.dropboxAT,
+        path: '/item.txt',
+        chunkSize: 1000 * 1024,
+        autorename: true,
+        mode: 'overwrite'
+    })
+    .on('error', err => console.log(err))
+    .on('progress', res => console.log(res))
+    .on('metadata', metadata => console.log('Metadata', metadata))
+     
+    fs.createReadStream(filePath).pipe(up)
+      .on('finish', () => console.log('This fires before metadata!'))
 });
 
 app.listen(port);
