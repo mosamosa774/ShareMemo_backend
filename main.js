@@ -6,7 +6,6 @@ var path = require('path');
 const fetch = require('isomorphic-fetch');
 var Dropbox = require('dropbox').Dropbox;
 const bodyParser = require('body-parser');
-var FileReader = require('filereader')
 const db = require('dropbox-stream');
 console.log(process.env.dropboxAT)
 var dbx = new Dropbox({ accessToken: process.env.dropboxAT });
