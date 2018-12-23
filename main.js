@@ -46,12 +46,12 @@ app.post('/file', function(req, res) {
         autorename: true,
         mode: 'overwrite'
     })
-    .on('error', err => console.log(err))
+    .on('error', err => res.send(err))
     .on('progress', res => console.log(res))
     .on('metadata', metadata => console.log('Metadata', metadata))
      
     fs.createReadStream(filePath).pipe(up)
-      .on('finish', () => console.log('This fires before metadata!'))
+      .on('finish', () => res.send("done finish!!"))
 });
 
 app.listen(port);
